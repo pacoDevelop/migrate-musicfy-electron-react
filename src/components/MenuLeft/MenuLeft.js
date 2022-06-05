@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Menu, Icon } from "semantic-ui-react";
-import { Link, withRouter } from "react-router-dom";
+import { Link } from "react-router-dom";
+import { withRouter } from "../../utils/withRouter";
 import { isUserAdmin } from "../../utils/Api";
 import BasicModal from "../Modal/BasicModal";
 import AddArtistForm from "../Artists/AddArtistForm";

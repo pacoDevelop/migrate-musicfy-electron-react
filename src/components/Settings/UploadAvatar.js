@@ -3,9 +3,11 @@ import { Image } from "semantic-ui-react";
 import { useDropzone } from "react-dropzone";
 import { toast } from "react-toastify";
 import NoAvatar from "../../assets/png/user.png";
-import firebase from "../../utils/Firebase";
+import  firebase from "../../utils/FirebaseCustom";
+import { getAuth,updateProfile } from "firebase/auth";
 import "firebase/storage";
 import "firebase/auth";
+import { getStorage, ref,getDownloadURL,uploadBytes  } from "firebase/storage";
 
 export default function UploadAvatar(props) {
   const { user, setReloadApp } = props;
@@ -25,26 +27,42 @@ export default function UploadAvatar(props) {
     onDrop
   });
 
-  const uploadImage = file => {
-    const ref = firebase
-      .storage()
-      .ref()
-      .child(`avatar/${user.uid}`);
-    return ref.put(file);
+  const uploadImage = async file => {
+    const storage = getStorage();
+    const storageRef = ref(storage,`avatar/${user.uid}`);
+    // const ref = firebase
+    //   .storage()
+    //   .ref()
+    //   .child(`avatar/${user.uid}`);
+    await uploadBytes(storageRef, file).then((v) => {
+      console.log('Fichero subido!');
+      return true;
+    });
+    // return ref2.put(file);
+    return false;
   };
 
   const updateUserAvatar = () => {
-    firebase
-      .storage()
-      .ref(`avatar/${user.uid}`)
-      .getDownloadURL()
-      .then(async response => {
-        await firebase.auth().currentUser.updateProfile({ photoURL: response });
-        setReloadApp(prevState => !prevState);
-      })
-      .catch(() => {
-        toast.error("Error al actualizar el avatar.");
-      });
+   
+
+   const storage = getStorage();
+   getDownloadURL(ref(storage, `avatar/${user.uid}`)).then(async response => {
+     updateProfile(getAuth().currentUser,{ photoURL: response })
+    .then( setReloadApp(prevState => !prevState)).catch(() => {
+      toast.error("Error al actualizar el avatar.");
+    })})
+       
+    // firebase
+    //   .storage()
+    //   .ref(`avatar/${user.uid}`)
+    //   .getDownloadURL()
+    //   .then(async response => {
+    //     await updateProfile(getAuth().currentUser,{ photoURL: response });
+    //     setReloadApp(prevState => !prevState);
+    //   })
+    //   .catch(() => {
+    //     toast.error("Error al actualizar el avatar.");
+    //   });
   };
 
   return (

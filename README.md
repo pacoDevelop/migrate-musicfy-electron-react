@@ -1,5 +1,16 @@
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
+Esta migración ha sido realizada por @pacoDevelop.
+
+### `1º npm install o yarn install`.
+
+Si intentas ejecutar el proyecto te dará errores, es por un problema en la librería que hay en produccion del css.
+He creado este pequeño script que solo deberás ejecutar una vez y limpiaremos los carácteres duplicados de los archivos y ya funcionará.
+
+### `2º npm repare-semantic o yarn repare-semantic`.
+
+### `3º npm start o yarn start`.
+
 ## Available Scripts
 
 In the project directory, you can run:

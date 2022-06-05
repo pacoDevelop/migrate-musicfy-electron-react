@@ -1,21 +1,23 @@
 import React from "react";
 import { Icon, Image } from "semantic-ui-react";
-import { Link, withRouter } from "react-router-dom";
-import firebase from "../../utils/Firebase";
+import { Link,useNavigate } from "react-router-dom";
+import { withRouter } from "../../utils/withRouter";
+import { getAuth,signOut } from "firebase/auth";
 import "firebase/auth";
 import UserImage from "../../assets/png/user.png";
 
 import "./TopBar.scss";
 
 function TopBar(props) {
-  const { user, history } = props;
-
+  const { user } = props;
+  const navigate = useNavigate();
   const goBack = () => {
-    history.goBack();
+    // history.goBack();
+    navigate(-1);
   };
 
   const logout = () => {
-    firebase.auth().signOut();
+   signOut(getAuth());
   };
 
   return (

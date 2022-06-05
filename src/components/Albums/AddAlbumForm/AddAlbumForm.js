@@ -5,15 +5,16 @@ import { map } from "lodash";
 import { toast } from "react-toastify";
 // import uuid from "uuid/v4";
 import { v4 as uuidv4 } from "uuid";
-import firebase from "../../../utils/Firebase";
+import  firebase,{ getDb } from "../../../utils/FirebaseCustom";
 import "firebase/firestore";
 import "firebase/storage";
 import NoImage from "../../../assets/png/no-image.png";
-
+import { getStorage, ref,uploadBytes  } from "firebase/storage";
 import "./AddAlbumForm.scss";
+import { getDocs,collection,addDoc } from "firebase/firestore";
 
-const db = firebase.firestore(firebase);
 
+const db = getDb();
 export default function AddAlbumForm(props) {
   const { setShowModal } = props;
   const [artists, setArtists] = useState([]);
@@ -23,9 +24,10 @@ export default function AddAlbumForm(props) {
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    db.collection("artists")
-      .get()
-      .then(response => {
+    
+ const docRef = collection(getDb(), "artists");
+  
+    getDocs(docRef).then(response => {
         const arrayArtists = [];
         map(response?.docs, artist => {
           const data = artist.data();
@@ -37,6 +39,20 @@ export default function AddAlbumForm(props) {
         });
         setArtists(arrayArtists);
       });
+    // db.collection("artists")
+    //   .get()
+    //   .then(response => {
+    //     const arrayArtists = [];
+    //     map(response?.docs, artist => {
+    //       const data = artist.data();
+    //       arrayArtists.push({
+    //         key: artist.id,
+    //         value: artist.id,
+    //         text: data.name
+    //       });
+    //     });
+    //     setArtists(arrayArtists);
+    //   });
   }, []);
 
   const onDrop = useCallback(acceptedFiles => {
@@ -51,43 +67,66 @@ export default function AddAlbumForm(props) {
     onDrop
   });
 
-  const uploadImage = fileName => {
-    const ref = firebase
-      .storage()
-      .ref()
-      .child(`album/${fileName}`);
-    return ref.put(file);
+  const uploadImage = async fileName => {
+
+
+  const storage = getStorage();
+  const storageRef = ref(storage,`album/${fileName}`);
+    // const ref = firebase
+    //   .storage()
+    //   .ref()
+    //   .child(`album/${fileName}`);
+    await uploadBytes(storageRef, file).then((v) => {
+      console.log('Fichero subido!');
+      return true;
+    });
+    // return ref2.put(file);
+    return false;
   };
 
   const onSubmit = () => {
     if (!formData.name || !formData.artist) {
-      toast.warning("El nombre del álbum y el artista son obligatorios.");
+      toast.warn("El nombre del álbum y el artista son obligatorios.");
     } else if (!file) {
-      toast.warning("La imagen del album es obligatoria.");
+      toast.warn("La imagen del album es obligatoria.");
     } else {
       setIsLoading(true);
       const fileName = uuidv4();
       uploadImage(fileName)
         .then(() => {
-          db.collection("albums")
-            .add({
-              name: formData.name,
-              artist: formData.artist,
-              banner: fileName
-            })
-            .then(() => {
+         addDoc(collection(db, "albums"), {
+            name: formData.name,
+            artist: formData.artist,
+            banner: fileName
+          }).then(() => {
               toast.success("Album creado.");
               resetForm();
               setIsLoading(false);
               setShowModal(false);
             })
             .catch(() => {
-              toast.warning("Error al crear el album.");
+              toast.warn("Error al crear el album.");
               setIsLoading(false);
-            });
+            });;
+          // db.collection("albums")
+          //   .add({
+          //     name: formData.name,
+          //     artist: formData.artist,
+          //     banner: fileName
+          //   })
+          //   .then(() => {
+          //     toast.success("Album creado.");
+          //     resetForm();
+          //     setIsLoading(false);
+          //     setShowModal(false);
+          //   })
+          //   .catch(() => {
+          //     toast.warn("Error al crear el album.");
+          //     setIsLoading(false);
+          //   });
         })
         .catch(() => {
-          toast.warning("Error al subir la imagen del álbum.");
+          toast.warn("Error al subir la imagen del álbum.");
           setIsLoading(false);
         });
     }

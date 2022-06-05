@@ -3,7 +3,7 @@ import { Button, Form, Input, Icon } from "semantic-ui-react";
 import { toast } from "react-toastify";
 import { reauthenticate } from "../../utils/Api";
 import alertErrors from "../../utils/AlertErrors";
-import firebase from "../../utils/Firebase";
+import { getAuth,updatePassword,signOut } from "firebase/auth";
 import "firebase/auth";
 
 export default function UserPassword(props) {
@@ -41,25 +41,24 @@ function ChangePasswordForm(props) {
       !formData.newPassword ||
       !formData.repeatNewPassword
     ) {
-      toast.warning("Las contraseñas no puedes estar vacias.");
+      toast.warn("Las contraseñas no puedes estar vacias.");
     } else if (formData.currentPassword === formData.newPassword) {
-      toast.warning("La nueva contraseña no puede ser igual a la actual.");
+      toast.warn("La nueva contraseña no puede ser igual a la actual.");
     } else if (formData.newPassword !== formData.repeatNewPassword) {
-      toast.warning("Las nuevas contraseñas no son iguales.");
+      toast.warn("Las nuevas contraseñas no son iguales.");
     } else if (formData.newPassword.length < 6) {
-      toast.warning("La contraseña tiene que tener minimo 6 caracteres.");
+      toast.warn("La contraseña tiene que tener minimo 6 caracteres.");
     } else {
       setIsLoading(true);
       reauthenticate(formData.currentPassword)
         .then(() => {
-          const currentUser = firebase.auth().currentUser;
-          currentUser
-            .updatePassword(formData.newPassword)
+          const currentUser =getAuth().currentUser;
+            updatePassword(currentUser,formData.newPassword)
             .then(() => {
               toast.success("Contraseña actualizada.");
               setIsLoading(false);
               setShowModal(false);
-              firebase.auth().signOut();
+             signOut(getAuth());
             })
             .catch(err => {
               alertErrors(err?.code);

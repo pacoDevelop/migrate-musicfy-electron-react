@@ -2,29 +2,41 @@ import React, { useState, useEffect } from "react";
 import { Grid } from "semantic-ui-react";
 import { map } from "lodash";
 import { Link } from "react-router-dom";
-import firebase from "../../utils/Firebase";
+import  firebase,{ getDb } from "../../utils/FirebaseCustom";
 import "firebase/firestore";
 import "firebase/storage";
+import { getDocs,collection } from "firebase/firestore";
 
 import "./Albums.scss";
-
-const db = firebase.firestore(firebase);
+import { getStorage, ref,getDownloadURL } from "firebase/storage";
+const db = getDb();
 
 export default function Albums() {
   const [albums, setAlbums] = useState([]);
 
   useEffect(() => {
-    db.collection("albums")
-      .get()
-      .then(response => {
-        const arrayAlbums = [];
-        map(response?.docs, album => {
-          const data = album.data();
-          data.id = album.id;
-          arrayAlbums.push(data);
-        });
-        setAlbums(arrayAlbums);
-      });
+    const docRef = collection(getDb(), "albums");
+  
+    getDocs(docRef).then(response => {
+       const arrayAlbums = [];
+       map(response?.docs, album => {
+         const data = album.data();
+         data.id = album.id;
+         arrayAlbums.push(data);
+       });
+       setAlbums(arrayAlbums);
+     });
+    // db.collection("albums")
+    //   .get()
+    //   .then(response => {
+    //     const arrayAlbums = [];
+    //     map(response?.docs, album => {
+    //       const data = album.data();
+    //       data.id = album.id;
+    //       arrayAlbums.push(data);
+    //     });
+    //     setAlbums(arrayAlbums);
+    //   });
   }, []);
 
   return (
@@ -46,13 +58,19 @@ function Album(props) {
   const [imageUrl, setImageUrl] = useState(null);
 
   useEffect(() => {
-    firebase
-      .storage()
-      .ref(`album/${album.banner}`)
-      .getDownloadURL()
-      .then(url => {
+    
+
+   const storage = getStorage();
+   getDownloadURL(ref(storage, `album/${album.banner}`)).then(url => {
         setImageUrl(url);
       });
+    // firebase
+    //   .storage()
+    //   .ref(`album/${album.banner}`)
+    //   .getDownloadURL()
+    //   .then(url => {
+    //     setImageUrl(url);
+    //   });
   }, [album]);
 
   return (

@@ -1,13 +1,13 @@
 import React, { useState } from "react";
 import { Grid } from "semantic-ui-react";
 import { BrowserRouter as Router } from "react-router-dom";
-import Routes from "../../routes/Routes";
+import RoutesCustom from "../../routes/Routes";
 import MenuLeft from "../../components/MenuLeft";
 import TopBar from "../../components/TopBar";
 import Player from "../../components/Player";
-import firebase from "../../utils/Firebase";
+import  firebase from "../../utils/FirebaseCustom";
 import "firebase/storage";
-
+import { getStorage, ref,getDownloadURL } from "firebase/storage";
 import "./LoggedLayout.scss";
 
 export default function LoggedLayout(props) {
@@ -15,13 +15,17 @@ export default function LoggedLayout(props) {
   const [songData, setSongData] = useState(null);
 
   const playerSong = (albumImage, songName, songNameFile) => {
-    firebase
-      .storage()
-      .ref(`song/${songNameFile}`)
-      .getDownloadURL()
-      .then(url => {
+    
+
+   const storage = getStorage();
+   getDownloadURL(ref(storage, `song/${songNameFile}`)).then(url => {
         setSongData({ url, image: albumImage, name: songName });
       });
+    // firebase
+    //   .storage()
+    //   .ref(`song/${songNameFile}`)
+    //   .getDownloadURL()
+    //   
   };
 
   return (
@@ -33,7 +37,7 @@ export default function LoggedLayout(props) {
           </Grid.Column>
           <Grid.Column className="content" width={13}>
             <TopBar user={user} />
-            <Routes
+            <RoutesCustom
               user={user}
               setReloadApp={setReloadApp}
               playerSong={playerSong}

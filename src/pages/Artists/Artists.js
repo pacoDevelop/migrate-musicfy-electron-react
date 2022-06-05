@@ -2,20 +2,21 @@ import React, { useState, useEffect } from "react";
 import { Grid } from "semantic-ui-react";
 import { map } from "lodash";
 import { Link } from "react-router-dom";
-import firebase from "../../utils/Firebase";
+import  firebase,{ getDb } from "../../utils/FirebaseCustom";
 import "firebase/firestore";
-
+import { getDocs,collection } from "firebase/firestore";
 import "./Artists.scss";
-
-const db = firebase.firestore(firebase);
+import { getStorage, ref,getDownloadURL } from "firebase/storage";
+const db = getDb();
 
 export default function Artists() {
   const [artists, setArtists] = useState([]);
 
   useEffect(() => {
-    db.collection("artists")
-      .get()
-      .then(response => {
+    
+ const docRef = collection(getDb(), "artists");
+  
+    getDocs(docRef).then(response => {
         const arrayArtists = [];
         map(response?.docs, artist => {
           const data = artist.data();
@@ -24,6 +25,17 @@ export default function Artists() {
         });
         setArtists(arrayArtists);
       });
+    // db.collection("artists")
+    //   .get()
+    //   .then(response => {
+    //     const arrayArtists = [];
+    //     map(response?.docs, artist => {
+    //       const data = artist.data();
+    //       data.id = artist.id;
+    //       arrayArtists.push(data);
+    //     });
+    //     setArtists(arrayArtists);
+    //   });
   }, []);
 
   return (
@@ -45,13 +57,20 @@ function Artist(props) {
   const [bannerUrl, setBannerUrl] = useState(null);
 
   useEffect(() => {
-    firebase
-      .storage()
-      .ref(`artist/${artist.banner}`)
-      .getDownloadURL()
-      .then(url => {
+    
+
+   const storage = getStorage();
+   getDownloadURL(ref(storage, `artist/${artist.banner}`)).then(url => {
         setBannerUrl(url);
       });
+ 
+    // firebase
+    //   .storage()
+    //   .ref(`artist/${artist.banner}`)
+    //   .getDownloadURL()
+    //   .then(url => {
+    //     setBannerUrl(url);
+    //   });
   }, [artist]);
 
   return (

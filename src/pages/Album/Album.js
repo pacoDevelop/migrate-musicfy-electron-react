@@ -1,15 +1,17 @@
 import React, { useState, useEffect } from "react";
 import { Loader } from "semantic-ui-react";
-import { withRouter } from "react-router-dom";
+import { withRouter } from "../../utils/withRouter";
 import { map } from "lodash";
 import ListSongs from "../../components/Songs/ListSongs";
-import firebase from "../../utils/Firebase";
+import firebase,{ getDb } from "../../utils/FirebaseCustom";
 import "firebase/firestore";
 import "firebase/storage";
-
+import { getDocs,getDoc,collection,query,where,doc } from "firebase/firestore";
 import "./Album.scss";
+import { getStorage, ref,getDownloadURL } from "firebase/storage";
+import { useParams   } from "react-router-dom";
 
-const db = firebase.firestore(firebase);
+const db = getDb();
 
 function Album(props) {
   const { match, playerSong } = props;
@@ -17,47 +19,69 @@ function Album(props) {
   const [albumImg, setAlbumImg] = useState(null);
   const [artist, setArtist] = useState(null);
   const [songs, setSongs] = useState([]);
+  const { id } = useParams(); 
 
   useEffect(() => {
-    db.collection("albums")
-      .doc(match.params.id)
-      .get()
-      .then(response => {
+ const docRef = doc(getDb(), "albums",id);
+    
+    getDoc(docRef).then(response => {
+        
+        // doc.data() is never undefined for query doc snapshots
         const data = response.data();
         data.id = response.id;
-        setAlbum(data);
+        // console.log(data.id)
+        if(data.id){
+          setAlbum(data);
+        }
+        
+       
       });
+    // db.collection("albums")
+    //   .doc(match.params.id)
+    //   .get()
+    //   .then(response => {
+    //     const data = response.data();
+    //     data.id = response.id;
+    //     setAlbum(data);
+    //   });
   }, [match]);
 
   useEffect(() => {
     if (album) {
-      firebase
-        .storage()
-        .ref(`album/${album?.banner}`)
-        .getDownloadURL()
-        .then(url => {
-          setAlbumImg(url);
-        });
+      const storage = getStorage();
+  getDownloadURL(ref(storage,`album/${album?.banner}`)).then(url => {
+      setAlbumImg(url);
+      });
+      // firebase
+      //   .storage()
+      //   .ref(`album/${album?.banner}`)
+      //   .getDownloadURL()
+      //   .then(url => {
+      //     setAlbumImg(url);
+      //   });
     }
   }, [album]);
 
   useEffect(() => {
     if (album) {
-      db.collection("artists")
-        .doc(album?.artist)
-        .get()
-        .then(response => {
+ const docRef = doc(getDb(), "artists",album?.artist);
+    getDoc(docRef).then(response =>  {
           setArtist(response.data());
         });
+      // db.collection("artists")
+      //   .doc(album?.artist)
+      //   .get()
+      //   .then(response => {
+      //     setArtist(response.data());
+      //   });
     }
   }, [album]);
 
   useEffect(() => {
     if (album) {
-      db.collection("songs")
-        .where("album", "==", album.id)
-        .get()
-        .then(response => {
+      const docRef = collection(getDb(), "songs");
+      const q = query(docRef,where("album", "==", album.id));
+      getDocs(q).then(response => {
           const arraySongs = [];
           map(response?.docs, song => {
             const data = song.data();
@@ -66,6 +90,18 @@ function Album(props) {
           });
           setSongs(arraySongs);
         });
+      // db.collection("songs")
+      //   .where("album", "==", album.id)
+      //   .get()
+      //   .then(response => {
+      //     const arraySongs = [];
+      //     map(response?.docs, song => {
+      //       const data = song.data();
+      //       data.id = song.id;
+      //       arraySongs.push(data);
+      //     });
+      //     setSongs(arraySongs);
+      //   });
     }
   }, [album]);
 

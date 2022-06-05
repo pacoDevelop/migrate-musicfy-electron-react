@@ -1,9 +1,8 @@
 import React, { useState } from "react";
 import { Form, Input, Button } from "semantic-ui-react";
 import { toast } from "react-toastify";
-import firebase from "../../utils/Firebase";
 import "firebase/auth";
-
+import { getAuth,updateProfile } from "firebase/auth";
 export default function UserName(props) {
   const {
     user,
@@ -45,9 +44,7 @@ function ChangeDisplayNameForm(props) {
       setShowModal(false);
     } else {
       setIsLoading(true);
-      firebase
-        .auth()
-        .currentUser.updateProfile({ displayName: formData.displayName })
+      updateProfile(getAuth().currentUser,{ displayName: formData.displayName })
         .then(() => {
           setReloadApp(prevState => !prevState);
           toast.success("Nombre actualizado");

@@ -2,11 +2,11 @@ import React, { useState, useEffect } from "react";
 import { map, size } from "lodash";
 import Slider from "react-slick";
 import { Link } from "react-router-dom";
-import firebase from "../../../utils/Firebase";
+import  firebase from "../../../utils/FirebaseCustom";
 import "firebase/storage";
 
 import "./BasicSliderItems.scss";
-
+import { getStorage, ref,getDownloadURL } from "firebase/storage";
 export default function BasicSliderItems(props) {
   const { title, data, folderImage, urlName } = props;
 
@@ -44,13 +44,19 @@ function RenderItem(props) {
   const [imageUrl, setImageUrl] = useState(null);
 
   useEffect(() => {
-    firebase
-      .storage()
-      .ref(`${folderImage}/${item.banner}`)
-      .getDownloadURL()
-      .then(url => {
+   
+
+   const storage = getStorage();
+   getDownloadURL(ref(storage, `${folderImage}/${item.banner}`)).then(url => {
         setImageUrl(url);
-      });
+      });;
+    // firebase
+    //   .storage()
+    //   .ref(`${folderImage}/${item.banner}`)
+    //   .getDownloadURL()
+    //   .then(url => {
+    //     setImageUrl(url);
+    //   });
   }, [item, folderImage]);
 
   return (

@@ -1,21 +1,27 @@
 import React, { useState, useEffect } from "react";
-import firebase from "../../../utils/Firebase";
+import  firebase from "../../../utils/FirebaseCustom";
 import "firebase/storage";
 
 import "./BannerArtist.scss";
+import { getStorage, ref,getDownloadURL  } from "firebase/storage";
 
 export default function BannerArtist(props) {
   const { artist } = props;
   const [bannerUrl, setBannerUrl] = useState(null);
 
   useEffect(() => {
-    firebase
-      .storage()
-      .ref(`artist/${artist?.banner}`)
-      .getDownloadURL()
-      .then(url => {
-        setBannerUrl(url);
-      });
+    const storage = getStorage();
+    getDownloadURL(ref(storage, `artist/${artist?.banner}`)).then(url => {
+     setBannerUrl(url);
+        });
+    
+    // firebase
+    //   .storage()
+    //   .ref(`artist/${artist?.banner}`)
+    //   .getDownloadURL()
+    //   .then(url => {
+    //     setBannerUrl(url);
+    //   });
   }, [artist]);
 
   return (

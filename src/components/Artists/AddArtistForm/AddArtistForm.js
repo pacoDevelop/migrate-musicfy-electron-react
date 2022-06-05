@@ -3,14 +3,17 @@ import { Form, Input, Button, Image } from "semantic-ui-react";
 import { useDropzone } from "react-dropzone";
 import { toast } from "react-toastify";
 import { v4 as uuidv4 } from "uuid";
-import firebase from "../../../utils/Firebase";
+import  firebase,{ getDb } from "../../../utils/FirebaseCustom";
 import "firebase/storage";
 import "firebase/firestore";
 import NoImage from "../../../assets/png/no-image.png";
 
 import "./AddArtistForm.scss";
+import { getStorage, ref,uploadBytes } from "firebase/storage";
 
-const db = firebase.firestore(firebase);
+import { collection,addDoc } from "firebase/firestore";
+
+const db = getDb();
 
 export default function AddArtistForm(props) {
   const { setShowModal } = props;
@@ -31,36 +34,54 @@ export default function AddArtistForm(props) {
     onDrop
   });
 
-  const uploadImage = fileName => {
-    const ref = firebase
-      .storage()
-      .ref()
-      .child(`artist/${fileName}`);
-    return ref.put(file);
+  const uploadImage =async fileName => {
+    const storage = getStorage();
+    const storageRef = ref(storage,`artist/${fileName}`);
+    // const ref = firebase
+    //   .storage()
+    //   .ref()
+    //   .child(`artist/${fileName}`);
+    await uploadBytes(storageRef, file).then((v) => {
+      console.log('Fichero subido!');
+      return true;
+    });
+    // return ref2.put(file);
+    return false;
   };
 
   const onSubmit = () => {
     if (!formData.name) {
-      toast.warning("Añade el nombre del artista.");
+      toast.warn("Añade el nombre del artista.");
     } else if (!file) {
-      toast.warning("Añade la imagen del artista.");
+      toast.warn("Añade la imagen del artista.");
     } else {
       setIsLoading(true);
       const fileName = uuidv4();
       uploadImage(fileName)
         .then(() => {
-          db.collection("artists")
-            .add({ name: formData.name, banner: fileName })
-            .then(() => {
-              toast.success("Artista creado correctamente.");
-              resetForm();
-              setIsLoading(false);
-              setShowModal(false);
-            })
-            .catch(() => {
-              toast.error("Error al crear el artista.");
-              setIsLoading(false);
-            });
+          addDoc(collection(db, "artists"), { name: formData.name, banner: fileName })
+          .then(() => {
+            toast.success("Artista creado correctamente.");
+            resetForm();
+            setIsLoading(false);
+            setShowModal(false);
+          })
+          .catch(() => {
+            toast.error("Error al crear el artista.");
+            setIsLoading(false);
+          });
+          // db.collection("artists")
+          //   .add({ name: formData.name, banner: fileName })
+          //   .then(() => {
+          //     toast.success("Artista creado correctamente.");
+          //     resetForm();
+          //     setIsLoading(false);
+          //     setShowModal(false);
+          //   })
+          //   .catch(() => {
+          //     toast.error("Error al crear el artista.");
+          //     setIsLoading(false);
+          //   });
         })
         .catch(() => {
           toast.error("Error al subir la imagen.");

@@ -2,9 +2,8 @@ import React, { useState } from "react";
 import { Button, Icon, Form, Input } from "semantic-ui-react";
 import { toast } from "react-toastify";
 import { validateEmail } from "../../../utils/Validations";
-import firebase from "../../../utils/Firebase";
 import "firebase/auth";
-
+import { getAuth,signInWithEmailAndPassword,sendEmailVerification  } from "firebase/auth";
 import "./LoginForm.scss";
 
 export default function LoginForm(props) {
@@ -44,14 +43,13 @@ export default function LoginForm(props) {
 
     if (formOk) {
       setIsLoading(true);
-      firebase
-        .auth()
-        .signInWithEmailAndPassword(formData.email, formData.password)
+        signInWithEmailAndPassword(getAuth(),formData.email, formData.password)
         .then(response => {
+          
           setUser(response.user);
           setUserActive(response.user.emailVerified);
           if (!response.user.emailVerified) {
-            toast.warning(
+            toast.warn(
               "Para poder hacer login antes tienes que verificar la cuenta."
             );
           }
@@ -136,8 +134,8 @@ function ButtonResetSendEmailVerification(props) {
   const { user, setIsLoading, setUserActive } = props;
 
   const resendVerificationEmail = () => {
-    user
-      .sendEmailVerification()
+   
+      sendEmailVerification(getAuth().currentUser)
       .then(() => {
         toast.success("Se ha enviado el email de verificacion.");
       })
@@ -163,15 +161,15 @@ function ButtonResetSendEmailVerification(props) {
 function handlerErrors(code) {
   switch (code) {
     case "auth/wrong-password":
-      toast.warning("El usuario o la contraseña son incorrecto.");
+      toast.warn("El usuario o la contraseña son incorrecto.");
       break;
     case "auth/too-many-requests":
-      toast.warning(
+      toast.warn(
         "Has enviado demasiadas solicitudes de reenvio de email de confirmacion en muy poco tiempo."
       );
       break;
     case "auth/user-not-found":
-      toast.warning("El usuario o la contraseña son incorrecto.");
+      toast.warn("El usuario o la contraseña son incorrecto.");
       break;
     default:
       break;

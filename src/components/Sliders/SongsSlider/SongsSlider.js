@@ -3,17 +3,17 @@ import { Icon } from "semantic-ui-react";
 import Slider from "react-slick";
 import { map, size } from "lodash";
 import { Link } from "react-router-dom";
-import firebase from "../../../utils/Firebase";
+import  firebase,{ getDb } from "../../../utils/FirebaseCustom";
 import "firebase/firestore";
 import "firebase/storage";
+    import { getDoc,doc } from "firebase/firestore";
 
 import "./SongsSlider.scss";
-
-const db = firebase.firestore(firebase);
+  import { getStorage, ref,getDownloadURL } from "firebase/storage";
+const db = getDb();
 
 export default function SongsSlider(props) {
   const { title, data, playerSong } = props;
-
   const settings = {
     dats: false,
     infiniti: true,
@@ -46,25 +46,41 @@ function Song(props) {
   const [album, setAlbum] = useState(null);
 
   useEffect(() => {
-    db.collection("albums")
-      .doc(item.album)
-      .get()
-      .then(response => {
+ const docRef = doc(getDb(), "albums",item.album);
+  
+    getDoc(docRef).then(response => {
+        // doc.data() is never undefined for query doc snapshots
         const albumTemp = response.data();
         albumTemp.id = response.id;
         setAlbum(albumTemp);
         getImage(albumTemp);
       });
+    // db.collection("albums")
+    //   .doc(item.album)
+    //   .get()
+    //   .then(response => {
+    //     const albumTemp = response.data();
+    //     albumTemp.id = response.id;
+    //     setAlbum(albumTemp);
+    //     getImage(albumTemp);
+    //   });
   }, [item]);
 
   const getImage = album => {
-    firebase
-      .storage()
-      .ref(`album/${album.banner}`)
-      .getDownloadURL()
-      .then(bannerUrl => {
+  
+
+   const storage = getStorage();
+   getDownloadURL(ref(storage, `album/${album.banner}`)).then(bannerUrl => {
         setBanner(bannerUrl);
       });
+    
+    // firebase
+    //   .storage()
+    //   .ref(`album/${album.banner}`)
+    //   .getDownloadURL()
+    //   .then(bannerUrl => {
+    //     setBanner(bannerUrl);
+    //   });
   };
 
   const onPlay = () => {

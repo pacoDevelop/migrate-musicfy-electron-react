@@ -3,7 +3,7 @@ import { Button, Form, Input, Icon } from "semantic-ui-react";
 import { toast } from "react-toastify";
 import { reauthenticate } from "../../utils/Api";
 import alertErrors from "../../utils/AlertErrors";
-import firebase from "../../utils/Firebase";
+import { getAuth,sendEmailVerification,signOut,updateEmail } from "firebase/auth";
 import "firebase/auth";
 
 export default function UserEmail(props) {
@@ -35,20 +35,20 @@ function ChangeEmailForm(props) {
 
   const onSubmit = () => {
     if (!formData.email) {
-      toast.warning("El email es el mismo.");
+      toast.warn("El email es el mismo.");
     } else {
       setIsLoading(true);
       reauthenticate(formData.password)
         .then(() => {
-          const currentUser = firebase.auth().currentUser;
-          currentUser
-            .updateEmail(formData.email)
+          const currentUser =getAuth().currentUser;
+          
+            updateEmail(currentUser,formData.email)
             .then(() => {
               toast.success("Email actualizado.");
               setIsLoading(false);
               setShowModal(false);
-              currentUser.sendEmailVerification().then(() => {
-                firebase.auth().signOut();
+              sendEmailVerification(currentUser).then(() => {
+              signOut( getAuth());
               });
             })
             .catch(err => {

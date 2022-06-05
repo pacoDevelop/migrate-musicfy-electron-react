@@ -2,8 +2,9 @@ import React, { useState } from "react";
 import { Button, Icon, Form, Input } from "semantic-ui-react";
 import { toast } from "react-toastify";
 import { validateEmail } from "../../../utils/Validations";
-import firebase from "../../../utils/Firebase";
+import  firebase from "../../../utils/FirebaseCustom";
 import "firebase/auth";
+import { getAuth,createUserWithEmailAndPassword,updateProfile,sendEmailVerification   } from "firebase/auth";
 
 import "./RegisterForm.scss";
 
@@ -46,9 +47,8 @@ export default function RegisterForm(props) {
 
     if (formOk) {
       setIsLoading(true);
-      firebase
-        .auth()
-        .createUserWithEmailAndPassword(formData.email, formData.password)
+     
+        createUserWithEmailAndPassword( getAuth(),formData.email, formData.password)
         .then(() => {
           changeUserName();
           sendVerificationEmail();
@@ -64,9 +64,8 @@ export default function RegisterForm(props) {
   };
 
   const changeUserName = () => {
-    firebase
-      .auth()
-      .currentUser.updateProfile({
+    updateProfile(getAuth()
+    .currentUser,{
         displayName: formData.username
       })
       .catch(() => {
@@ -75,9 +74,8 @@ export default function RegisterForm(props) {
   };
 
   const sendVerificationEmail = () => {
-    firebase
-      .auth()
-      .currentUser.sendEmailVerification()
+    sendEmailVerification(getAuth()
+    .currentUser)
       .then(() => {
         toast.success("Se ha enviado un email de verificacion.");
       })

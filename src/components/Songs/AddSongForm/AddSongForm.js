@@ -4,13 +4,16 @@ import { useDropzone } from "react-dropzone";
 import { map } from "lodash";
 import { toast, ToastType } from "react-toastify";
 import { v4 as uuidv4 } from "uuid";
-import firebase from "../../../utils/Firebase";
+import  firebase,{ getDb } from "../../../utils/FirebaseCustom";
 import "firebase/firestore";
 import "firebase/storage";
 
 import "./AddSongForm.scss";
 
-const db = firebase.firestore(firebase);
+import { getStorage, ref,uploadBytes } from "firebase/storage";
+    import { getDocs,collection, addDoc} from "firebase/firestore";
+ 
+const db = getDb();
 
 export default function AddSongForm(props) {
   const { setShowModal } = props;
@@ -20,9 +23,9 @@ export default function AddSongForm(props) {
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    db.collection("albums")
-      .get()
-      .then(response => {
+ const docRef = collection(getDb(), "albums");
+  
+    getDocs(docRef).then(response => {
         const albumsArray = [];
         map(response?.docs, album => {
           const data = album.data();
@@ -34,6 +37,20 @@ export default function AddSongForm(props) {
         });
         setAlbums(albumsArray);
       });
+    // db.collection("albums")
+    //   .get()
+    //   .then(response => {
+    //     const albumsArray = [];
+    //     map(response?.docs, album => {
+    //       const data = album.data();
+    //       albumsArray.push({
+    //         key: album.id,
+    //         value: album.id,
+    //         text: data.name
+    //       });
+    //     });
+    //     setAlbums(albumsArray);
+    //   });
   }, []);
 
   const onDrop = useCallback(acceptedFiels => {
@@ -47,33 +64,40 @@ export default function AddSongForm(props) {
     onDrop
   });
 
-  const uploadSong = fileName => {
-    const ref = firebase
-      .storage()
-      .ref()
-      .child(`song/${fileName}`);
-    return ref.put(file);
+  const uploadSong = async fileName => {
+    const storage = getStorage();
+    const storageRef = ref(storage,`song/${fileName}`);
+    // const ref = firebase
+    //   .storage()
+    //   .ref()
+    //   .child(`song/${fileName}`);
+    await uploadBytes(storageRef, file).then((v) => {
+      console.log('Fichero subido!');
+      return true;
+    });
+    // return ref2.put(file);
+    return false;
   };
 
   const onSubmit = () => {
     if (!formData.name || !formData.album) {
-      toast.warning(
+      toast.warn(
         "El nombre de la canción y el álbum al que pertence son obligatorios."
       );
     } else if (!file) {
-      toast.warning("La cación es obligatoria.");
+      toast.warn("La cación es obligatoria.");
     } else {
       setIsLoading(true);
       const fileName = uuidv4();
       uploadSong(fileName)
         .then(() => {
-          db.collection("songs")
-            .add({
+          
+
+ addDoc(collection(db, "songs"),{
               name: formData.name,
               album: formData.album,
               fileName: fileName
-            })
-            .then(() => {
+            }).then(() => {
               toast.success("Canción subida correctamente.");
               resetForm();
               setIsLoading(false);
@@ -83,6 +107,22 @@ export default function AddSongForm(props) {
               toast.error("Error al subir la canción.");
               setIsLoading(false);
             });
+          // db.collection("songs")
+          //   .add({
+          //     name: formData.name,
+          //     album: formData.album,
+          //     fileName: fileName
+          //   })
+          //   .then(() => {
+          //     toast.success("Canción subida correctamente.");
+          //     resetForm();
+          //     setIsLoading(false);
+          //     setShowModal(false);
+          //   })
+          //   .catch(() => {
+          //     toast.error("Error al subir la canción.");
+          //     setIsLoading(false);
+          //   });
         })
         .catch(() => {
           toast.error("Error al subir la canción.");
