@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Grid } from "semantic-ui-react";
-import { BrowserRouter as Router } from "react-router-dom";
+import { HashRouter as Router } from "react-router-dom";
 import RoutesCustom from "../../routes/Routes";
 import MenuLeft from "../../components/MenuLeft";
 import TopBar from "../../components/TopBar";
