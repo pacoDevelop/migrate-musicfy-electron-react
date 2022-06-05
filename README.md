@@ -12,7 +12,7 @@ He creado este pequeño script que solo deberás ejecutar una vez y limpiaremos 
 ### `3º npm start o yarn start`.
 
 
-![Inicio]([https://raw.githubusercontent.com/parzibyte/WaterPy/master/assets/ImagenV1.png](https://raw.githubusercontent.com/pacoDevelop/migrate-musicfy-electron-react/master/imagenes_app/2022-06-05_13h24_31.png))
+![Inicio](https://github.com/pacoDevelop/migrate-musicfy-electron-react/raw/master/imagenes_app/2022-06-05_13h24_31.png)
 
 ![Configuración](https://github.com/pacoDevelop/migrate-musicfy-electron-react/raw/master/imagenes_app/2022-06-05_13h24_39.png)
 
